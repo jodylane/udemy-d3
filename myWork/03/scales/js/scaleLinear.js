@@ -11,6 +11,9 @@ var processLinearData = data => {
   /*
    * domain is a range for your raw data max & min values
    * range is a range for you svg max height & min height values
+   *   min height should never be set to min value in your data set 
+   *   rather the min value you would want to be shown in your data
+   *   set for your visualization
   **/
   var linearScale = d3.scaleLinear()
     .domain([0, 828])
