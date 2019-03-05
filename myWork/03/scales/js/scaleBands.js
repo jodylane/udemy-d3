@@ -9,6 +9,12 @@ var processBandsData = data => {
     .append('svg')
       .attr('width', 400)
       .attr('height', 400);
+
+  svg.append('text')
+    .attr('y', 15)
+    .attr('x', 400 / 2)
+    .attr('text-anchor', 'middle')
+    .text('ScaleBand Graph');
  
   var ordinalScale = d3.scaleOrdinal()
     .domain(categories)

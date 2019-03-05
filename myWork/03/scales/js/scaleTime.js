@@ -22,6 +22,12 @@ var processTimeData = data => {
       .attr('width', 400)
       .attr('height', 400);
 
+  svg.append('text')
+    .attr('y', 15)
+    .attr('x', 400 / 2)
+    .attr('text-anchor', 'middle')
+    .text('ScaleTime Graph');
+
   /*
    * domain is a range for your raw data max & min values\
    *   with dates if you set the domain min value to your earliest date

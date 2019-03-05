@@ -11,6 +11,12 @@ var processOrdinalData = data => {
       .attr('width', 400)
       .attr('height', 400);
 
+  svg.append('text')
+    .attr('y', 15)
+    .attr('x', 400 / 2)
+    .attr('text-anchor', 'middle')
+    .text('ScaleOrdinal Graph');
+
   /*
    * domain is a list for all of your categories
    * range is a list for all of your colors 
