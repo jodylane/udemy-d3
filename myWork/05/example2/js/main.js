@@ -2,6 +2,8 @@ var margin = { top: 10, right: 10, bottom: 50, left: 80 },
   height = 400 - margin.top - margin.bottom,
   width = 600 - margin.left - margin.right;
 
+var flag = true;
+
 // add svg group our chart and slide to fit margins for axis labels
 var g = d3.select('#chart-area')
   .append('svg')
@@ -20,7 +22,7 @@ g.append('text')
   .attr('font-size', '20px')
   .text('Month');
 
-g.append('text')
+var yAxisLabel = g.append('text')
   .attr('x', - height / 2)
   .attr('y', - 60)
   .attr('text-anchor', 'middle')
@@ -56,15 +58,19 @@ var processData = data => {
   console.log(data);
 
   // update loop
-  d3.interval(() => { update(data) }, 1000);
+  d3.interval(() => {
+    update(data);
+    flag = !flag;
+  }, 1000);
   // renders first time befor first update loop runs
   update(data);
 }
 
 const update = data => {
-  console.log('hello world')
-  xScale.domain(data.map(month => month.month));
-  yScale.domain([0, d3.max(data, month => month.revenue)]);
+  // console.log('hello world')
+  var value = flag ? 'revenue' : 'profit';
+  xScale.domain(data.map(d => d.month));
+  yScale.domain([0, d3.max(data, d => d[value])]);
   
   // adding x axis
   var xAxisCall = d3.axisBottom(xScale);
@@ -77,9 +83,11 @@ const update = data => {
 
   yAxisGroup.call(yAxisCall);
 
+  console.log(value)
+
   // Data Join
   // join the new data with old elements, if any
-  var bars = g.selectAll('rects')
+  var bars = g.selectAll('rect')
     .data(data);
 
   // console.log(bars);
@@ -95,22 +103,22 @@ const update = data => {
   // UPDATE
   // Update old elements as needed
   bars
-    .attr('x', month => xScale(month.month))
-    .attr('y', month => yScale(month.revenue))
-    .attr('height', month => height - yScale(month.revenue))
+    .attr('x', d => xScale(d.month))
+    .attr('y', d => yScale(d[value]))
+    .attr('height', d => height - yScale(d[value]))
     .attr('width', xScale.bandwidth);
 
   // ENTER
   // Create new elements as needed
   bars.enter()
     .append('rect')
-      .attr('x', month => xScale(month.month))
-      .attr('y', month => yScale(month.revenue))
-      .attr('height', month => height - yScale(month.revenue))
+      .attr('x', d => xScale(d.month))
+      .attr('y', d => yScale(d[value]))
+      .attr('height', d => height - yScale(d[value]))
       .attr('width', xScale.bandwidth)
       .attr('fill', 'grey');
-      
-  console.log(bars);
+  var label = value.charAt(0).toUpperCase() + value.slice(1)
+  yAxisLabel.text(label);
 }
 
 var handlerError = error => alert(error);

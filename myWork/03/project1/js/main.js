@@ -66,7 +66,7 @@ var processData = data => {
     .attr('class', 'y-axis')
     .call(yAxisCall);
   
-  var bars = g.selectAll('rects')
+  var bars = g.selectAll('rect')
     .data(data);
 
   bars.enter()
