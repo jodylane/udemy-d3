@@ -12,6 +12,31 @@ const g = d3.select('#chart-area')
 			.attr('width', width)
 			.attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
 
+const tipKeyValues = []
+
+const tip = d3.tip()
+	.attr('class', 'd3-tip')
+	.html(country => {
+		const keys = Object.keys(country);
+		let markup = '';
+		keys.forEach(key => {
+			let title = key;
+			let value = country[key];
+			if (key === 'life_exp') {
+				title = 'life expectancy';
+				value = d3.format(".2f")(value);
+			} else if(key === 'income') {
+				value = d3.format("$,.0f")(value);
+			} else if (key === 'population') {
+				value = d3.format(",.0f")(value);
+			}
+			markup += '<div>' + title + ': <span>' + value + '</span></div>';
+		});
+		return markup;
+	});
+
+g.call(tip);
+
 // scales
 const yScale = d3.scaleLinear()
 	.range([height, 0]);
@@ -108,7 +133,7 @@ d3.json('data/data.json').then(data => {
 });
 
 const update = (year, maxOptions) => {
-	console.log(year)
+	// console.log(year)
 	const t = d3.transition().duration(100);
 	//Domains
 	yScale.domain([0, maxOptions.maxLife]);
@@ -136,6 +161,8 @@ const update = (year, maxOptions) => {
 		.append('circle')
 			.attr('fill', country => colorScale(country.continent))
 			.attr('r', country => Math.sqrt(rScale(country.population) / Math.PI))
+			.on('mouseover', tip.show)
+			.on('mouseout', tip.hide)
 			.merge(circles)
 			.transition(t)
 				.attr('cy', country => yScale(country.life_exp))
