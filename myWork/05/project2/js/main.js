@@ -1,7 +1,8 @@
 let time = 0;
 const margin = { top: 10, right: 10, bottom: 140, left: 100 },
 	height = 500 - margin.top - margin.bottom,
-	width = 800 - margin.left - margin.right;
+	width = 800 - margin.left - margin.right,
+	maxOptions = {};
 
 const g = d3.select('#chart-area')
 	.append('svg')
@@ -11,6 +12,30 @@ const g = d3.select('#chart-area')
 			.attr('height', height)
 			.attr('width', width)
 			.attr('transform', 'translate(' + margin.left + ', ' + margin.top + ')');
+			
+// create tool tip
+const tip = d3.tip()
+	.attr('class', 'd3-tip')
+	.html(country => {
+		const keys = Object.keys(country);
+		let markup = '';
+		keys.forEach(key => {
+			let title = key;
+			let value = country[key];
+			if (key === 'life_exp') {
+				title = 'life expectancy';
+				value = d3.format(".2f")(value);
+			} else if(key === 'income') {
+				value = d3.format("$,.0f")(value);
+			} else if (key === 'population') {
+				value = d3.format(",.0f")(value);
+			}
+			markup += '<div>' + title + ': <span>' + value + '</span></div>';
+		});
+		return markup;
+	});
+
+g.call(tip);
 
 // scales
 const yScale = d3.scaleLinear()
@@ -63,34 +88,33 @@ d3.json('data/data.json').then(data => {
 		incomeArray = [],
 		lifeArray = [];
 	data.forEach(year => {
-		year.year = +year.year;
 		year.countries = year.countries.filter(country => country.income && country.life_exp);
 		popArray.push(d3.max(year.countries, country => country.population));
 		incomeArray.push(d3.max(year.countries, country => country.income));
 		lifeArray.push(d3.max(year.countries, country => country.life_exp));
 	});
 	
-	// find the max year in data set
-	const maxYear =  data.length - 1;
-	const maxPopulation = d3.max(popArray);
-	const maxIncome = d3.max(incomeArray);
-	const maxLife = d3.max(lifeArray);
-	var maxOptions = { maxPopulation, maxIncome, maxLife };
+	// set our max options with our dataset
+	maxOptions.year =  data.length - 1;
+	maxOptions.population = d3.max(popArray);
+	maxOptions.income = d3.max(incomeArray);
+	maxOptions.life_exp = d3.max(lifeArray);
+
 	d3.interval(() => {
 		// loops over all data repeatedly
-		time = time < maxYear ? time + 1 : 0;
-		update(data[time], maxOptions);
+		time = time < maxOptions.year ? time + 1 : 0;
+		update(data[time]);
 	}, 100);
-	update(data[time], maxOptions);
+	update(data[time]);
 });
 
-const update = (year, maxOptions) => {
-	console.log(year)
+const update = year => {
+	// console.log(year)
 	const t = d3.transition().duration(100);
 	//Domains
-	yScale.domain([0, maxOptions.maxLife]);
-	xScale.domain([105, maxOptions.maxIncome]);
-	rScale.domain([0, maxOptions.maxPopulation]);
+	yScale.domain([0, maxOptions.life_exp]);
+	xScale.domain([105, maxOptions.income]);
+	rScale.domain([0, maxOptions.population]);
 
 	// call Axis
 	const xAxisCall = d3.axisBottom(xScale)
@@ -113,6 +137,8 @@ const update = (year, maxOptions) => {
 		.append('circle')
 			.attr('fill', country => colorScale(country.continent))
 			.attr('r', country => Math.sqrt(rScale(country.population) / Math.PI))
+			.on('mouseover', tip.show)
+			.on('mouseout', tip.hide)
 			.merge(circles)
 			.transition(t)
 				.attr('cy', country => yScale(country.life_exp))
